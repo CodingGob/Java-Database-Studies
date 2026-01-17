@@ -10,7 +10,7 @@ public class MySQLConnection {
 
     private static Connection conn = null;
 
-    private static Properties loadProperties() {
+    private static Properties loadProperties() throws MySQLException {
         Properties props = new Properties();
 
         try (InputStream is = MySQLConnection.class
@@ -18,19 +18,19 @@ public class MySQLConnection {
                 .getResourceAsStream("db.properties")) {
 
             if (is == null) {
-                throw new RuntimeException("db.properties not found in classpath");
+                throw new MySQLException("db.properties not found in classpath");
             }
 
             props.load(is);
 
         } catch (Exception e) {
-            throw new RuntimeException("Error loading db.properties", e);
+            throw new MySQLException("Could not load db.properties", e);
         }
 
         return props;
     }
 
-    public static Connection getConnection() {
+    public static Connection getConnection() throws MySQLException {
         try {
             if (conn == null || conn.isClosed()) {
                 Properties props = loadProperties();
@@ -39,17 +39,17 @@ public class MySQLConnection {
             }
             return conn;
         } catch (SQLException e) {
-            throw new RuntimeException("Error getting database connection", e);
+            throw new MySQLException("Could not get database connection", e);
         }
     }
 
-    public static void closeConnection() {
+    public static void closeConnection() throws MySQLException {
         try {
             if (conn != null && !conn.isClosed()) {
                 conn.close();
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error closing connection", e);
+            throw new MySQLException("Could not close connection", e);
         }
     }
 }

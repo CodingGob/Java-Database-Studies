@@ -5,9 +5,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import connection.MySQLException;
+
 public class DepartmentDAO {
     
-    public static int sellerCount(Connection conn, String departmentName) throws SQLException {
+    public static int sellerCount(Connection conn, String departmentName) throws MySQLException {
         // Returns the number of sellers in a given department.
         // Returns -1 if department doesn't exist
 
@@ -28,14 +30,14 @@ public class DepartmentDAO {
                      
                 return rs.getInt("SellerCount");
             } catch (SQLException e) {
-            throw new SQLException("Could not execute the query.", e);
+            throw new MySQLException("Could not execute the query.", e);
             }
         } catch (SQLException e) {
-            throw new SQLException("Could not prepare the statement.", e);
+            throw new MySQLException("Could not prepare the statement.", e);
         }
     }
 
-    public static String sellerCountAll(Connection conn) throws SQLException {
+    public static String sellerCountAll(Connection conn) throws MySQLException {
         // Returns a string listing all departments and their respective seller counts.
 
         StringBuilder sb = new StringBuilder();
@@ -60,10 +62,10 @@ public class DepartmentDAO {
 
                 return hasResults ? sb.toString() : "No departments found.";
             } catch (SQLException e) {
-                throw new SQLException("Could not excecute the query.", e);
+                throw new MySQLException("Could not excecute the query.", e);
             }
         } catch (SQLException e) {
-            throw new SQLException("Could not prepare the statement.", e);
+            throw new MySQLException("Could not prepare the statement.", e);
         }
     }
 }
