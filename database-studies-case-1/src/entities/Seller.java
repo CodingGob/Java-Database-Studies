@@ -18,6 +18,15 @@ public class Seller {
         this.departmentId = departmentId;
     }
 
+    public Seller(Integer id, String name, String email, java.util.Date birthDate, double baseSalary, Integer departmentId) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.birthDate = birthDate;
+        this.baseSalary = baseSalary;
+        this.departmentId = departmentId;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -91,7 +100,7 @@ public class Seller {
         if (getClass() != obj.getClass())
             return false;
         Seller other = (Seller) obj;
-        
+
         return Objects.equals(name, other.name) && Objects.equals(email, other.email);
     }
 }

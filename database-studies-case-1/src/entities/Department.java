@@ -10,6 +10,11 @@ public class Department {
         this.name = name;
     }
 
+    public Department(Integer id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -45,7 +50,7 @@ public class Department {
         if (getClass() != obj.getClass())
             return false;
         Department other = (Department) obj;
-        
+
         return Objects.equals(name, other.name);
     }
 }
