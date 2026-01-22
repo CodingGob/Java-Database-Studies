@@ -4,6 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import connection.MySQLException;
 import entities.Department;
@@ -50,6 +54,30 @@ public class DepartmentDAO {
                     return department;
                 }
                 return null;
+            } catch (SQLException e) {
+                throw new MySQLException("Could not execute the query.", e);
+            }
+        } catch (SQLException e) {
+            throw new MySQLException("Could not prepare the statement.", e);
+        }
+    }
+
+    public static List<Department> showAll(Connection conn) throws MySQLException {
+        // Returns a list of all departments in the database.
+
+        List<Department> departments = new ArrayList<>();
+
+        String sql = "SELECT * FROM department";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)){
+            try (ResultSet rs = stmt.executeQuery()){
+                while (rs.next()) {
+                    departments.add(new Department(
+                        rs.getInt("Id"),
+                        rs.getString("Name")
+                    ));
+                }
+                return departments;
             } catch (SQLException e) {
                 throw new MySQLException("Could not execute the query.", e);
             }
@@ -126,11 +154,10 @@ public class DepartmentDAO {
         }
     }
 
-    public static String sellerCountAll(Connection conn) throws MySQLException {
-        // Returns a string listing all departments and their respective seller counts.
+    public static Map<String, Integer> sellerCountAll(Connection conn) throws MySQLException {
+        // Returns a TreeMap of all departments and their respective seller counts.
 
-        StringBuilder sb = new StringBuilder();
-        boolean hasResults = false;
+        Map<String, Integer> result = new TreeMap<>();
 
         String sql = """
         SELECT department.Name, COUNT(seller.Id) as SellerCount
@@ -142,19 +169,108 @@ public class DepartmentDAO {
         try (PreparedStatement stmt = conn.prepareStatement(sql)){
             try (ResultSet rs = stmt.executeQuery()){
                 while (rs.next()) {
-                    hasResults = true;
-                    sb.append(rs.getString("Name"));
-                    sb.append(" - ");
-                    sb.append(rs.getString("SellerCount"));
-                    sb.append("\n");
+                    String name = rs.getString("Name");
+                    int count = rs.getInt("SellerCount");
+                    result.put(name, count);
                 }
 
-                return hasResults ? sb.toString() : "No departments found.";
+                return result;
             } catch (SQLException e) {
                 throw new MySQLException("Could not excecute the query.", e);
             }
         } catch (SQLException e) {
             throw new MySQLException("Could not prepare the statement.", e);
+        }
+    }
+
+    public static Department updateById(Connection conn, int id, String newName) throws MySQLException {
+        // Updates the department's name based on its id number.
+
+        if (findById(conn, id) == null){
+            throw new MySQLException("There is no department with id = " + id + "."); 
+        }
+
+        String sql = "UPDATE department SET Name = ? WHERE Id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)){
+            stmt.setString(1, newName);
+            stmt.setInt(2, id);
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new MySQLException("Updating department failed, no rows affected.");
+            }
+
+            return new Department(id, newName);
+        } catch (SQLException e) {
+            throw new MySQLException("Could not prepare or execute the statement.", e);
+        }
+    }
+
+    public static Department updateByName(Connection conn, String oldName, String newName) throws MySQLException {
+        // Updates the department's name based on its name.
+
+        Department department = findByName(conn, oldName);
+        if (department == null){
+            throw new MySQLException("There is no department with name = '" + oldName + "'."); 
+        }
+
+        String sql = "UPDATE department SET Name = ? WHERE Name = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)){
+            stmt.setString(1, newName);
+            stmt.setString(2, oldName);
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new MySQLException("Updating department failed, no rows affected.");
+            }
+
+            department.setName(newName);
+            return department;
+        } catch (SQLException e) {
+            throw new MySQLException("Could not prepare or execute the statement.", e);
+        }
+    }
+
+    public static void deleteById(Connection conn, int id) throws MySQLException {
+        // Deletes a department based on its id number.
+
+        if (findById(conn, id) == null){
+            throw new MySQLException("There is no department with id = " + id + "."); 
+        }
+
+        String sql = "DELETE FROM department WHERE Id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)){
+            stmt.setInt(1, id);
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new MySQLException("Deleting department failed, no rows affected.");
+            }
+        } catch (SQLException e) {
+            throw new MySQLException("Could not prepare or execute the statement.", e);
+        }
+    }
+
+    public static void deleteByName(Connection conn, String name) throws MySQLException {
+        // Deletes a department based on its name.
+
+        if (findByName(conn, name) == null){
+            throw new MySQLException("There is no department with name = '" + name + "'."); 
+        }
+
+        String sql = "DELETE FROM department WHERE Name = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)){
+            stmt.setString(1, name);
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new MySQLException("Deleting department failed, no rows affected.");
+            }
+        } catch (SQLException e) {
+            throw new MySQLException("Could not prepare or execute the statement.", e);
         }
     }
 }
