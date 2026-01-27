@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import DAO.DepartmentDAO;
+import connection.DBIntegrityException;
 import connection.MySQLConnection;
 import connection.MySQLException;
 import entities.Department;
@@ -155,8 +156,8 @@ public class App {
                 5. Count all sellers in the company by department
                 6. Insert new department
                 7. Update by ID
-                9. Update by Name
-                8. Delete by ID
+                8. Update by Name
+                9. Delete by ID
                 10. Delete by Name
 
                 B. Back to Main Menu
@@ -610,9 +611,10 @@ public class App {
         }
     }
 
-    public static MenuAction depDeleteById(Scanner sc, Connection conn) throws MySQLException {
+    public static MenuAction depDeleteById(Scanner sc, Connection conn) throws MySQLException, DBIntegrityException {
         int departmentId;
         Department department;
+        int sellerCount;
         String input;
         MenuAction action;
 
@@ -651,6 +653,13 @@ public class App {
                 continue;
             }
 
+            sellerCount = DepartmentDAO.sellerCount(conn, department.getName());
+            if (sellerCount > 0) {
+                System.out.println("Department '" + department.getName() + "' cannot be removed while there are still sellers attributed to it.");
+                System.out.println("Number of sellers in '" + department.getName() + "' = " + sellerCount);
+                continue;
+            } 
+
             System.out.println("\nDepartment with ID = " + departmentId + " named '" + department.getName() + "' found.");
             System.out.print("Are you sure you want to delete it? (Y/N): ");
             input = sc.nextLine();
@@ -671,9 +680,10 @@ public class App {
         }
     }
     
-    public static MenuAction depDeleteByName(Scanner sc, Connection conn) throws MySQLException {
+    public static MenuAction depDeleteByName(Scanner sc, Connection conn) throws MySQLException, DBIntegrityException {
         String departmentName;
         Department department;
+        int sellerCount;
         String input;
         MenuAction action;
 
@@ -703,6 +713,13 @@ public class App {
             department = DepartmentDAO.findByName(conn, departmentName);
             if (department == null) {
                 System.out.println("Department named '" + departmentName + "' not found.");
+                continue;
+            }
+
+            sellerCount = DepartmentDAO.sellerCount(conn, department.getName());
+            if (sellerCount > 0) {
+                System.out.println("Department '" + department.getName() + "' cannot be removed while there are still sellers attributed to it.");
+                System.out.println("Number of sellers in '" + department.getName() + "' = " + sellerCount);
                 continue;
             }
 

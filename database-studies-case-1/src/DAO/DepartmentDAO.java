@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import connection.DBIntegrityException;
 import connection.MySQLException;
 import entities.Department;
 
@@ -141,7 +142,7 @@ public class DepartmentDAO {
                 throw new MySQLException("No ID generated for department.");
             } 
         } catch (SQLException e) {
-            if (e.getErrorCode() == 1062 || "23000".equals(e.getSQLState())) {
+            if (e.getErrorCode() == 1062 || "23000".equals(e.getSQLState())) { // Unique violation code
                 throw new MySQLException("Department already exists with this name.", e);
             }
             throw new MySQLException("Could not insert department.", e);
@@ -283,7 +284,7 @@ public class DepartmentDAO {
         }
     }
 
-    public static boolean deleteById(Connection conn, int id) throws MySQLException {
+    public static boolean deleteById(Connection conn, int id) throws MySQLException, DBIntegrityException {
         // Deletes a department based on its id number and returns a boolean indicating success.
 
         if (id < 1) {
@@ -302,11 +303,15 @@ public class DepartmentDAO {
 
             return true;
         } catch (SQLException e) {
+            if (e.getErrorCode() == 1451 || "23000".equals(e.getSQLState())){ // Foreign key violation code
+                throw new DBIntegrityException("Cannot delete department: it is associated with one or more sellers.");
+        }
+
             throw new MySQLException("Could not prepare or execute the statement.", e);
         }
     }
 
-    public static boolean deleteByName(Connection conn, String name) throws MySQLException {
+    public static boolean deleteByName(Connection conn, String name) throws MySQLException, DBIntegrityException {
         // Deletes a department based on its name.
 
         if (name == null || name.trim().isEmpty()) {
@@ -325,6 +330,9 @@ public class DepartmentDAO {
 
             return true;
         } catch (SQLException e) {
+            if (e.getErrorCode() == 1451 || "23000".equals(e.getSQLState())){ // Foreign key violation code
+                throw new DBIntegrityException("Cannot delete department: it is associated with one or more sellers.");
+            }
             throw new MySQLException("Could not prepare or execute the statement.", e);
         }
     }
