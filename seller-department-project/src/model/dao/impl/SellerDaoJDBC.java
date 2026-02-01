@@ -1,5 +1,6 @@
 package model.dao.impl;
 
+import java.sql.Connection;
 import java.util.List;
 
 import model.dao.SellerDao;
@@ -8,6 +9,11 @@ import model.entities.Seller;
 import model.exceptions.DBException;
 
 public class SellerDaoJDBC implements SellerDao {
+    private final Connection conn;
+
+    public SellerDaoJDBC(Connection conn) {
+        this.conn = conn;
+    }
 
     @Override
     public Seller insert(Seller obj) throws DBException {
@@ -20,12 +26,22 @@ public class SellerDaoJDBC implements SellerDao {
     }
 
     @Override
-    public boolean deleteById(Integer id) throws DBException {
+    public boolean delete(Integer id) throws DBException {
         // TODO Auto-generated method stub
     }
 
     @Override
-    public Seller findById(Integer id) throws DBException {
+    public Seller findById(int id) throws DBException {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public Department findByName(String name) throws DBException {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public Department findByEmail(String email) throws DBException {
         // TODO Auto-generated method stub
     }
 

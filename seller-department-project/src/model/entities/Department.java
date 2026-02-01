@@ -21,10 +21,16 @@ public class Department implements Serializable {
     public String getName() {
         return this.name;
     }
+    
 
     @Override
     public String toString() {
-        return "[ " + this.getId() + ", " + this.getName() + " ]";
+        return 
+        "[Id = " 
+        + this.getId() 
+        + ", Name = " 
+        + this.getName() 
+        + "]";
     }
 
     @Override

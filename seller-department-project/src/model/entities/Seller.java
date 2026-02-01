@@ -50,25 +50,26 @@ public class Seller implements Serializable {
     public Department getDepartment() {
         return this.department;
     }
+    
 
     @Override
     public String toString() {
         LocalDate localDate = this.getBirthDate().toInstant().atZone(ZoneId.of("America")).toLocalDate();
 
         return 
-        "[ " 
+        "[Id = " 
         + this.getId() 
-        + ", " 
+        + ", Name = " 
         + this.getName() 
-        + ", " 
+        + ", Email = " 
         + this.getEmail()
-        + ", " 
+        + ", BirthDate = " 
         + localDate.format(fmt)
-        + ", " 
+        + ", BaseSalay = " 
         + this.getBaseSalary()
-        + ", " 
+        + ", Department = " 
         + this.getDepartment()
-        + " ]";
+        + "]";
     }
 
     @Override

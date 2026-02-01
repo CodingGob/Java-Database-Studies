@@ -1,13 +1,16 @@
 package model.dao;
 
+
 import java.util.List;
 
 import model.entities.Department;
 
 public interface DepartmentDao {
 	Department insert(Department obj);
-	Department update(Department obj);
-	boolean deleteById(Integer id);
-	Department findById(Integer id);
+	boolean updateById(Department obj);
+	boolean deleteById(Department obj);
+	Department findById(int id);
+	Department findByName(String name);
 	List<Department> findAll();
+	int countSellers(String name);
 }

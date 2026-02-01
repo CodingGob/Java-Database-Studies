@@ -1,14 +1,18 @@
 Department DAO:
 insert()
-update()
+updateById()
 deleteById()
+findByName()
 findById()
 findAll()
+CountSellers()
 
 Seller DAO:
 insert()
-update()
+updateById()
 deleteById()
 findById()
+findByName()
+findByEmail()
 findAll()
 findByDepartment()
