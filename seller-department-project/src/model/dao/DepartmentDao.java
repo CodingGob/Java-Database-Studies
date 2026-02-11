@@ -2,6 +2,7 @@ package model.dao;
 
 
 import java.util.List;
+import java.util.Map;
 
 import model.entities.Department;
 
@@ -12,5 +13,6 @@ public interface DepartmentDao {
 	Department findById(int id);
 	Department findByName(String name);
 	List<Department> findAll();
-	int countSellers(String name);
+	int countSellersByName(String name);
+	Map<Department, Integer> countAllSellers();
 }

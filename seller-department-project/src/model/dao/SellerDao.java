@@ -10,8 +10,8 @@ public interface SellerDao {
 	boolean updateById(Seller obj);
 	boolean deleteById(Seller obj);
 	Seller findById(int id);
-	Department findByName(String name);
-	Department findByEmail(String email);
+	Seller findByName(String name);
+	Seller findByEmail(String email);
 	List<Seller> findAll();
-	List<Seller> findByDepartment(Department department);
+	List<Seller> findByDepartment(Department obj);
 }

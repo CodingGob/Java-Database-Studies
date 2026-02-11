@@ -2,19 +2,20 @@ package application.ui;
 
 import java.util.Scanner;
 
-import model.dao.DepartmentDao;
-import model.dao.SellerDao;
+import application.services.DepartmentService;
+import application.services.SellerService;
+import model.exceptions.DBException;
 
 public abstract class BaseMenu {
-    protected DepartmentDao departmentDao;
-    protected SellerDao sellerDao;
+    protected DepartmentService departmentService;
+    protected SellerService sellerService;
 
-    public BaseMenu(DepartmentDao departmentDao, SellerDao sellerDao){
-        this.departmentDao = departmentDao;
-        this.sellerDao = sellerDao;
+    public BaseMenu(DepartmentService departmentService, SellerService sellerService){
+        this.departmentService = departmentService;
+        this.sellerService = sellerService;
     }
 
-    public abstract MenuAction show(Scanner sc);
+    public abstract MenuAction show(Scanner sc) throws DBException;
 
     protected String fixName(String name) {
         StringBuilder fixedName = new StringBuilder();
@@ -37,7 +38,7 @@ public abstract class BaseMenu {
         
         return fixedName.toString().trim();
     }
-
+     
     protected MenuAction bOrQCheck(String input) {
         switch (input.toUpperCase().trim()) {
             case "B", "BACK" -> { return MenuAction.BACK; }

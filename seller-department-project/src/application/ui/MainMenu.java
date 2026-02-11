@@ -2,14 +2,14 @@ package application.ui;
 
 import java.util.Scanner;
 
-import model.dao.DepartmentDao;
-import model.dao.SellerDao;
+import application.services.DepartmentService;
+import application.services.SellerService;
 import model.exceptions.DBException;
 
 public class MainMenu extends BaseMenu {
 
-    public MainMenu(DepartmentDao departmentDao, SellerDao sellerDao) {
-        super(departmentDao, sellerDao);
+    public MainMenu(DepartmentService departmentService, SellerService sellerService) {
+        super(departmentService, sellerService);
     }
 
     @Override
@@ -18,7 +18,7 @@ public class MainMenu extends BaseMenu {
         String input;
         String menuOptions = """
 
-            ================= MAIN MENU =================
+            ================== MAIN MENU ==================
             1. Department Menu
             2. Seller Menu
 
@@ -32,10 +32,10 @@ public class MainMenu extends BaseMenu {
 
             switch (input.toUpperCase().trim()) {
                 case "1":
-                    action = new DepartmentMenu(departmentDao, sellerDao).show(sc);
+                    action = new DepartmentMenu(departmentService, sellerService).show(sc);
                     break;
                 case "2":
-                    //TODO
+                    action = new SellerMenu(departmentService, sellerService).show(sc);
                     break;
                 case "Q":
                 case "QUIT":

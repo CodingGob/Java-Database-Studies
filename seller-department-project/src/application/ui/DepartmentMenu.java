@@ -1,16 +1,17 @@
 package application.ui;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
-import model.dao.DepartmentDao;
-import model.dao.SellerDao;
+import application.services.DepartmentService;
+import application.services.SellerService;
 import model.entities.Department;
 import model.exceptions.DBException;
 
 public class DepartmentMenu extends BaseMenu {
-    public DepartmentMenu(DepartmentDao departmentDao, SellerDao sellerDao){
-        super(departmentDao, sellerDao);
+    public DepartmentMenu(DepartmentService departmentService, SellerService sellerService) {
+        super(departmentService, sellerService);
     }
 
     @Override
@@ -21,12 +22,13 @@ public class DepartmentMenu extends BaseMenu {
 
         =============== DEPARTMENT MENU ===============
         1. Search department by ID
-        2. Search department by Name
+        2. Search department by name
         3. Show all departments
         4. Count sellers in a department
-        5. Insert new department
-        6. Update department
-        7. Delete department
+        5. Count sellers in all departments
+        6. Insert new department
+        7. Update department by ID
+        8. Delete department by ID
 
         B. Back to Main Menu
         Q. Quit
@@ -48,15 +50,18 @@ public class DepartmentMenu extends BaseMenu {
                     action = findAll(sc);
                     break;
                 case "4":
-                    action = countSellers(sc);
+                    action = countSellersByName(sc);
                     break;
                 case "5":
-                    action = insert(sc);
+                    action = countAllSellers(sc);
                     break;
                 case "6":
-                    action = updateById(sc);
+                    action = insert(sc);
                     break;
                 case "7":
+                    action = updateById(sc);
+                    break;
+                case "8":
                     action = deleteById(sc);
                     break;
                 case "B":
@@ -83,7 +88,7 @@ public class DepartmentMenu extends BaseMenu {
 
         String menuOptions = """
 
-            ========= FIND DEPARTMENT BY ID =========
+            ============ FIND DEPARTMENT BY ID ============
             B. Back to Department Menu
             Q. Quit
             """;
@@ -94,7 +99,7 @@ public class DepartmentMenu extends BaseMenu {
             input = sc.nextLine();
 
             if (input.trim().isEmpty()){
-                System.out.println("Department ID cannot be empty. Please try again.");
+                System.out.println("Department's ID cannot be empty. Please try again.");
                 continue;
             }
 
@@ -115,7 +120,7 @@ public class DepartmentMenu extends BaseMenu {
                 continue;
             }
 
-            department = departmentDao.findById(departmentId);
+            department = departmentService.findById(departmentId);
 
             if (department == null) {
                 System.out.println("There is no department with ID = " + departmentId + ".");
@@ -133,7 +138,7 @@ public class DepartmentMenu extends BaseMenu {
 
         String menuOptions = """
 
-            ======== FIND DEPARTMENT BY NAME ========
+            =========== FIND DEPARTMENT BY NAME ===========
             B. Back to Department Menu
             Q. Quit
             """;
@@ -144,7 +149,7 @@ public class DepartmentMenu extends BaseMenu {
             input = sc.nextLine();
 
             if (input.trim().isEmpty()) {
-                System.out.println("Department name cannot be empty. Please try again.");
+                System.out.println("Department's name cannot be empty. Please try again.");
                 continue;
             }
 
@@ -154,7 +159,7 @@ public class DepartmentMenu extends BaseMenu {
             }
             
             departmentName = fixName(input);
-            department = departmentDao.findByName(departmentName);
+            department = departmentService.findByName(departmentName);
             if (department == null) {
                 System.out.println("There is no '" + departmentName + "' department.");
             } else {
@@ -164,21 +169,19 @@ public class DepartmentMenu extends BaseMenu {
     }
 
     private MenuAction findAll(Scanner sc) throws DBException {
-        System.out.println("\n========= SHOWING ALL DEPARTMENTS =========");
-
-        List<Department> departments = departmentDao.findAll();
+        List<Department> departments = departmentService.findAll();
+        
+        System.out.println("\n=========== SHOWING ALL DEPARTMENTS ===========\n");
         if (departments.isEmpty()) {
             System.out.println("Department table is empty.");
-        } else {            
-            for (Department department : departments) {
-                System.out.println(department);
-            }
+        } else {
+            departments.forEach(System.out::println);
         }
 
         return bOrQMenu(sc);
     }
 
-    private MenuAction countSellers(Scanner sc) throws DBException {
+    private MenuAction countSellersByName(Scanner sc) throws DBException {
         MenuAction action;
         String input;
         String departmentName;
@@ -186,7 +189,7 @@ public class DepartmentMenu extends BaseMenu {
 
         String menuOptions = """
 
-            ========= DEPARTMENT COUNT SELLERS =========
+            =========== DEPARTMENT COUNT SELLERS ===========
             B. Back to Department Menu
             Q. Quit
             """;
@@ -198,7 +201,7 @@ public class DepartmentMenu extends BaseMenu {
             input = sc.nextLine();
 
             if (input.trim().isEmpty()){
-                System.out.println("Department name cannot be empty. Please try again.");
+                System.out.println("Department's name cannot be empty. Please try again.");
                 continue;
             }
             
@@ -208,7 +211,7 @@ public class DepartmentMenu extends BaseMenu {
             }
             
             departmentName = fixName(input);
-            sellerCount = departmentDao.countSellers(departmentName);
+            sellerCount = departmentService.countSellersByName(departmentName);
             if (sellerCount == -1) {
                 System.out.println("There is no '" + departmentName + "' department.");
             } else {
@@ -217,15 +220,30 @@ public class DepartmentMenu extends BaseMenu {
         }
     }
 
+    private MenuAction countAllSellers(Scanner sc) throws DBException {
+        Map<Department, Integer> result = departmentService.countAllSellers();
+        
+        System.out.println("\n========== SHOWING ALL SELLER COUNTS ==========\n");
+        if (result.isEmpty()) {
+            System.out.println("Department table is empty.");
+        } else {
+            for (Map.Entry<Department, Integer> entry : result.entrySet()) {
+                System.out.println(entry.getKey() + " Seller Count = " + entry.getValue());
+            }
+        }
+
+        return bOrQMenu(sc);
+    }
+
     private MenuAction insert(Scanner sc) throws DBException {
         MenuAction action;
+        String input;
         String departmentName;
         Department department;
-        String input;
 
         String menuOptions = """
 
-            =========== INSERT NEW DEPARTMENT ===========
+            ============ INSERT NEW DEPARTMENT ============
             B. Back to Department Menu
             Q. Quit
             """;
@@ -236,7 +254,7 @@ public class DepartmentMenu extends BaseMenu {
             input = sc.nextLine();
 
             if (input.trim().isEmpty()) {
-                System.out.println("Department name cannot be empty. Please try again.");
+                System.out.println("Department's name cannot be empty. Please try again.");
                 continue;
             }
 
@@ -246,12 +264,13 @@ public class DepartmentMenu extends BaseMenu {
             }
             
             departmentName = fixName(input);
-            department = departmentDao.findByName(departmentName);
+            department = departmentService.findByName(departmentName);
             if (department != null) {
                 System.out.println("Insertion canceled. There is already a department by this name: " + department);
             } else {
-                department = departmentDao.insert(new Department(null, departmentName));
-                System.out.println("Department successfully inserted: " + department);
+                department = departmentService.insert(new Department(departmentName));
+                System.out.println("Department successfully inserted:");
+                System.out.println(department);
             }
         }
     }
@@ -263,11 +282,10 @@ public class DepartmentMenu extends BaseMenu {
         String newName;
         Department oldDepartment;
         Department newDepartment;
-        Department comparativeDepartment;
 
         String menuOptions = """
 
-            ========= UPDATE DEPARTMENT BY ID =========
+            =========== UPDATE DEPARTMENT BY ID ===========
             B. Back to Department Menu
             Q. Quit
             """;
@@ -278,7 +296,7 @@ public class DepartmentMenu extends BaseMenu {
             input = sc.nextLine();
 
             if (input.trim().isEmpty()){
-                System.out.println("Department ID cannot be empty. Please try again.");
+                System.out.println("Department's ID cannot be empty. Please try again.");
                 continue;
             }
 
@@ -299,7 +317,7 @@ public class DepartmentMenu extends BaseMenu {
                 continue;
             }
 
-            oldDepartment = departmentDao.findById(departmentId);
+            oldDepartment = departmentService.findById(departmentId);
             if (oldDepartment == null) {
                 System.out.println("There is no department with ID = " + departmentId + ".");
                 continue;
@@ -323,7 +341,7 @@ public class DepartmentMenu extends BaseMenu {
             input = sc.nextLine();
 
             if (input.trim().isEmpty()) {
-                System.out.println("Department name cannot be empty. Please try again.");
+                System.out.println("Department's name cannot be empty. Please try again.");
                 continue;
             }
 
@@ -333,18 +351,20 @@ public class DepartmentMenu extends BaseMenu {
             }
 
             newName = fixName(input);
-            comparativeDepartment = departmentDao.findByName(newName);
-            if (comparativeDepartment != null) {
-                System.out.println("Update canceled. There is already a department by this name: " + comparativeDepartment);
+            newDepartment = departmentService.findByName(newName);
+            if (newDepartment != null) {
+                System.out.println("Update canceled. There is already a department by this name: " + newDepartment);
                 continue;
             }
             
             newDepartment = new Department(oldDepartment.getId(), newName);
-            if (departmentDao.updateById(newDepartment)) {
+            if (departmentService.updateById(newDepartment)) {
                 System.out.println();
                 System.out.println("Department successfully updated.");
                 System.out.println("From: " + oldDepartment);
                 System.out.println("To: " + newDepartment);
+            } else {
+                System.out.println("Update failed. Please try again.");
             }
         }
     }
@@ -358,7 +378,7 @@ public class DepartmentMenu extends BaseMenu {
 
         String menuOptions = """
 
-            ========= DELETE DEPARTMENT BY ID =========
+            =========== DELETE DEPARTMENT BY ID ===========
             B. Back to Department Menu
             Q. Quit
             """;
@@ -385,7 +405,7 @@ public class DepartmentMenu extends BaseMenu {
                 continue;
             }
 
-            department = departmentDao.findById(departmentId);
+            department = departmentService.findById(departmentId);
             if (department == null) {
                 System.out.println("Department with ID = " + departmentId + " not found.");
                 continue;
@@ -393,7 +413,7 @@ public class DepartmentMenu extends BaseMenu {
 
             System.out.println();
             
-            sellerCount = departmentDao.countSellers(department.getName());
+            sellerCount = departmentService.countSellersByName(department.getName());
             if (sellerCount > 0) {
                 System.out.println("Number of sellers in the '" + department.getName() + "' department = " + sellerCount);
                 System.out.println("Deletion canceled. Department cannot be removed while there are still sellers attributed to it.");
@@ -411,9 +431,11 @@ public class DepartmentMenu extends BaseMenu {
                 continue;
             }
 
-            if (departmentDao.deleteById(department)) {
+            if (departmentService.deleteById(department)) {
                 System.out.println();
                 System.out.println("Department '" + department.getName() + "' successfully deleted.");
+            } else {
+                System.out.println("Deletion failed. Please try again.");
             }
         }
     }
@@ -422,7 +444,7 @@ public class DepartmentMenu extends BaseMenu {
     private MenuAction bOrQMenu(Scanner sc) {
         String menuOptions = """
             
-        ===========================================
+        ===============================================
         B. Back to Department Menu
         Q. Quit
         """;
@@ -440,4 +462,3 @@ public class DepartmentMenu extends BaseMenu {
         return action;
     }
 }
-

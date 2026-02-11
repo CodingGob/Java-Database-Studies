@@ -5,7 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import model.dao.DepartmentDao;
 import model.entities.Department;
@@ -50,32 +52,42 @@ public class DepartmentDaoJDBC implements DepartmentDao {
     }
 
     private String sqlSellerCount(String column) {
+        if (column == null) {
+            return "SELECT "
+                        + "d.Id, "
+                        + "d.Name, "
+                        + "COUNT(s.Id) AS SellerCount "
+                    + "FROM department AS d "
+                    + "LEFT JOIN seller AS s "
+                        + "ON s.DepartmentId = d.Id "
+                    + "GROUP BY d.Id";
+        }
+
         return "SELECT "
-                + "COUNT(s.Id) AS SellerCount "
-            + "FROM department AS d "
-            + "LEFT JOIN seller AS s "
-            + "ON s.DepartmentId = d.Id "
-            + "WHERE d." + column + " = ? "
-            + "GROUP BY d.Id";
+                    + "COUNT(s.Id) AS SellerCount "
+                + "FROM department AS d "
+                + "LEFT JOIN seller AS s "
+                    + "ON s.DepartmentId = d.Id "
+                + "WHERE d." + column + " = ? "
+                + "GROUP BY d.Id";
     }
 
 
-    private void validate(Department obj) throws DBException {
+    private void validateObj(Department obj) throws DBException {
         if (obj == null) {
             throw new ValidationException("Department cannot be null.");
         }
 
         if (obj.getId() == null || obj.getId() < 1) {
-            throw new ValidationException("Id cannot be null or less then 1.");
+            throw new ValidationException("Department's Id cannot be null or less then 1.");
         }
 
         if (obj.getName() == null || obj.getName().trim().isEmpty()) {
             throw new ValidationException("Department's name cannot be null or empty.");
         }
     }
-    
-    @Override
-    public Department insert(Department obj) throws DBException {
+
+    private void validateObjData(Department obj) throws DBException {
         if (obj == null) {
             throw new ValidationException("Department cannot be null.");
         }
@@ -83,6 +95,12 @@ public class DepartmentDaoJDBC implements DepartmentDao {
         if (obj.getName() == null || obj.getName().trim().isEmpty()) {
             throw new ValidationException("Department's name cannot be null or empty.");
         }
+    }
+
+    
+    @Override
+    public Department insert(Department obj) throws DBException {
+        validateObjData(obj);
 
         try (PreparedStatement stmt = conn.prepareStatement(sqlInsert(), PreparedStatement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, obj.getName());
@@ -107,7 +125,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 
     @Override
     public boolean updateById(Department obj) throws DBException {
-        this.validate(obj);
+        validateObj(obj);
 
         try (PreparedStatement stmt = conn.prepareStatement(sqlUpdate("Id"))) {
             stmt.setString(1, obj.getName());
@@ -128,7 +146,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 
     @Override
     public boolean deleteById(Department obj) throws DBException {
-        this.validate(obj);
+        validateObj(obj);
         
         try (PreparedStatement stmt = conn.prepareStatement(sqlDelete("Id"))) {
             stmt.setInt(1, obj.getId());
@@ -149,7 +167,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
     @Override
     public Department findById(int id) throws DBException {
         if (id < 1) {
-            throw new ValidationException("Id cannot be null or less then 1.");
+            throw new ValidationException("Department's Id cannot be null or less then 1.");
         }
 
         try (PreparedStatement stmt = conn.prepareStatement(sqlSelect("Id"))) {
@@ -165,7 +183,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
                     rs.getString("Name"));
             }
         } catch (SQLException e) {
-            throw new DBException("Could not execute department select by id.", e);
+            throw new DBException("Could not execute department find by id.", e);
         }
     }
 
@@ -188,7 +206,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
                     rs.getString("Name"));
             }
         } catch (SQLException e) {
-            throw new DBException("Could not execute department select by name.", e);
+            throw new DBException("Could not execute department find by name.", e);
         }
     }
 
@@ -207,12 +225,12 @@ public class DepartmentDaoJDBC implements DepartmentDao {
                 return departments;
             }
         } catch (SQLException e) {
-            throw new DBException("Could not execute department select all.", e);
+            throw new DBException("Could not execute department find all.", e);
         }
     }
 
     @Override
-    public int countSellers(String name) throws DBException {
+    public int countSellersByName(String name) throws DBException {
         if (name == null || name.trim().isEmpty()) {
             throw new ValidationException("Department's name cannot be null or empty.");
         }
@@ -229,7 +247,26 @@ public class DepartmentDaoJDBC implements DepartmentDao {
             }
 
         } catch (SQLException e) {
-            throw new DBException("Could not execute department count Sellers.", e);
+            throw new DBException("Could not execute department count sellers by name.", e);
+        }
+    }
+
+    @Override
+    public Map<Department, Integer> countAllSellers() throws DBException {
+        Map<Department, Integer> result = new LinkedHashMap<>();
+
+        try (PreparedStatement stmt = conn.prepareStatement(sqlSellerCount(null))) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    result.put(
+                        new Department(rs.getInt("Id"), rs.getString("Name")), 
+                        rs.getInt("SellerCount"));
+                }
+            }
+
+            return result;
+        } catch (SQLException e) {
+            throw new DBException("Could not execute department count all sellers.", e);
         }
     }
 }
